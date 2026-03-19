@@ -312,9 +312,118 @@
   }
 
   .empty p { font-size: 13px; color: var(--text-dim); }
+
+  /* Password screen */
+  .lock-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  .lock-screen.hidden { display: none; }
+
+  .lock-box {
+    width: 100%;
+    max-width: 380px;
+    padding: 24px;
+    text-align: center;
+  }
+
+  .lock-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    line-height: 0.92;
+    margin-bottom: 8px;
+    letter-spacing: 0.02em;
+  }
+
+  .lock-logo span { color: var(--accent); }
+
+  .lock-subtitle {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 36px;
+  }
+
+  .lock-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px 20px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    outline: none;
+    text-align: center;
+    letter-spacing: 0.1em;
+    caret-color: var(--accent);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    margin-bottom: 12px;
+  }
+
+  .lock-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(232, 197, 71, 0.08);
+  }
+
+  .lock-input.error { border-color: #c0392b; }
+
+  .lock-btn {
+    width: 100%;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    padding: 14px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 0.08em;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .lock-btn:hover { background: var(--accent-dim); }
+
+  .lock-error {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: #c0392b;
+    margin-top: 10px;
+    display: none;
+  }
+
+  .lock-error.visible { display: block; }
 </style>
 </head>
 <body>
+
+<!-- Password screen -->
+<div class="lock-screen" id="lockScreen">
+  <div class="lock-box">
+    <div class="lock-logo">Client<br><span>Matcher</span></div>
+    <div class="lock-subtitle">Foodie Coaches // Internal Tool</div>
+    <input
+      class="lock-input"
+      id="lockInput"
+      type="password"
+      placeholder="Enter password"
+      onkeydown="if(event.key==='Enter') unlock()"
+      autofocus
+    >
+    <button class="lock-btn" onclick="unlock()">Enter</button>
+    <div class="lock-error" id="lockError">Incorrect password</div>
+  </div>
+</div>
+
 <div class="container">
 
   <div class="header">
@@ -366,6 +475,30 @@
 
 <script>
 const WORKER_URL = 'https://fc-matcher-proxy.samuel-robertson.workers.dev';
+const PASSWORD = 'FC2026!!';
+
+function unlock() {
+  const input = document.getElementById('lockInput');
+  const error = document.getElementById('lockError');
+  if (input.value === PASSWORD) {
+    document.getElementById('lockScreen').classList.add('hidden');
+    sessionStorage.setItem('fc_unlocked', '1');
+  } else {
+    input.classList.add('error');
+    error.classList.add('visible');
+    input.value = '';
+    setTimeout(() => {
+      input.classList.remove('error');
+      error.classList.remove('visible');
+    }, 2000);
+  }
+}
+
+window.onload = () => {
+  if (sessionStorage.getItem('fc_unlocked') === '1') {
+    document.getElementById('lockScreen').classList.add('hidden');
+  }
+};
 
 async function getEmbedding(text) {
   const res = await fetch(`${WORKER_URL}/embed`, {
@@ -384,12 +517,9 @@ async function searchTranscripts(embedding) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ query_embedding: embedding })
   });
-  const wrapper = await res.json();
-  console.log('Search response:', wrapper);
-  if (!Array.isArray(wrapper.data)) {
-    throw new Error(JSON.stringify(wrapper.data));
-  }
-  return wrapper.data;
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Search failed');
+  return data;
 }
 
 function deduplicateByClient(chunks) {
