@@ -518,11 +518,7 @@ async function searchTranscripts(embedding) {
     body: JSON.stringify({ query_embedding: embedding })
   });
   const wrapper = await res.json();
-  const data = wrapper.data !== undefined ? wrapper.data : wrapper;
-  if (!Array.isArray(data)) {
-    throw new Error(typeof data === 'object' ? JSON.stringify(data) : 'Search returned unexpected result');
-  }
-  return data;
+  throw new Error(JSON.stringify(wrapper));
 }
 
 function deduplicateByClient(chunks) {
