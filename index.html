@@ -15,7 +15,6 @@
     --text: #f0ece2;
     --text-muted: #7a756a;
     --text-dim: #4a4640;
-    --success: #5c9e6e;
     --card-bg: #161513;
   }
 
@@ -27,10 +26,8 @@
     font-family: 'DM Sans', sans-serif;
     font-weight: 300;
     min-height: 100vh;
-    padding: 0;
   }
 
-  /* Grain overlay */
   body::before {
     content: '';
     position: fixed;
@@ -49,10 +46,7 @@
     padding: 60px 24px 100px;
   }
 
-  /* Header */
-  .header {
-    margin-bottom: 56px;
-  }
+  .header { margin-bottom: 56px; }
 
   .header-tag {
     font-family: 'DM Mono', monospace;
@@ -73,9 +67,7 @@
     margin-bottom: 16px;
   }
 
-  .header h1 span {
-    color: var(--accent);
-  }
+  .header h1 span { color: var(--accent); }
 
   .header p {
     color: var(--text-muted);
@@ -84,74 +76,6 @@
     max-width: 460px;
   }
 
-  /* Config panel */
-  .config-panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 20px 24px;
-    margin-bottom: 32px;
-    display: none;
-  }
-
-  .config-panel.visible { display: block; }
-
-  .config-panel h3 {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.15em;
-    color: var(--accent);
-    text-transform: uppercase;
-    margin-bottom: 16px;
-  }
-
-  .config-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-
-  .config-field label {
-    display: block;
-    font-size: 11px;
-    color: var(--text-muted);
-    margin-bottom: 6px;
-    font-family: 'DM Mono', monospace;
-    letter-spacing: 0.05em;
-  }
-
-  .config-field input {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 10px 12px;
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .config-field input:focus { border-color: var(--accent); }
-
-  .config-save {
-    margin-top: 14px;
-    background: var(--accent);
-    color: var(--bg);
-    border: none;
-    padding: 10px 20px;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 500;
-    font-size: 13px;
-    border-radius: 3px;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-
-  .config-save:hover { background: var(--accent-dim); }
-
-  /* Search area */
   .search-wrap {
     position: relative;
     margin-bottom: 12px;
@@ -202,37 +126,15 @@
   .search-btn svg {
     width: 16px;
     height: 16px;
-    fill: var(--bg);
-  }
-
-  .search-meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 40px;
   }
 
   .search-hint {
     font-size: 12px;
     color: var(--text-dim);
     font-family: 'DM Mono', monospace;
+    margin-bottom: 40px;
   }
 
-  .config-toggle {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    font-size: 12px;
-    cursor: pointer;
-    font-family: 'DM Mono', monospace;
-    letter-spacing: 0.05em;
-    transition: color 0.2s;
-    padding: 0;
-  }
-
-  .config-toggle:hover { color: var(--accent); }
-
-  /* Status */
   .status {
     text-align: center;
     padding: 48px 0;
@@ -255,13 +157,11 @@
 
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Results */
   .results-header {
-    display: flex;
+    display: none;
     align-items: baseline;
     gap: 12px;
     margin-bottom: 24px;
-    display: none;
   }
 
   .results-header.visible { display: flex; }
@@ -274,10 +174,7 @@
     text-transform: uppercase;
   }
 
-  .results-query {
-    font-size: 13px;
-    color: var(--text-muted);
-  }
+  .results-query { font-size: 13px; color: var(--text-muted); }
 
   .results-count {
     font-family: 'DM Mono', monospace;
@@ -286,7 +183,6 @@
     margin-left: auto;
   }
 
-  /* Cards */
   .cards {
     display: flex;
     flex-direction: column;
@@ -316,9 +212,7 @@
     opacity: 0.6;
   }
 
-  @keyframes cardIn {
-    to { opacity: 1; transform: translateY(0); }
-  }
+  @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
 
   .card-top {
     display: flex;
@@ -369,7 +263,6 @@
     font-size: 14px;
     line-height: 1.7;
     color: var(--text-muted);
-    border-left: none;
     position: relative;
     padding-left: 16px;
   }
@@ -396,7 +289,6 @@
     text-overflow: ellipsis;
   }
 
-  /* Empty / error */
   .empty {
     text-align: center;
     padding: 60px 0;
@@ -419,25 +311,7 @@
     letter-spacing: 0.04em;
   }
 
-  .empty p {
-    font-size: 13px;
-    color: var(--text-dim);
-  }
-
-  /* Not configured */
-  .not-configured {
-    background: rgba(232, 197, 71, 0.05);
-    border: 1px solid rgba(232, 197, 71, 0.15);
-    border-radius: 4px;
-    padding: 20px 24px;
-    margin-bottom: 32px;
-    font-size: 13px;
-    color: var(--accent);
-    font-family: 'DM Mono', monospace;
-    display: none;
-  }
-
-  .not-configured.visible { display: block; }
+  .empty p { font-size: 13px; color: var(--text-dim); }
 </style>
 </head>
 <body>
@@ -449,32 +323,6 @@
     <p>Search across all coaching transcripts to find clients who share a common challenge, tool, or topic.</p>
   </div>
 
-  <!-- Not configured warning -->
-  <div class="not-configured" id="notConfigured">
-    ⚠ API keys not set. Click "configure keys" below to get started.
-  </div>
-
-  <!-- Config panel -->
-  <div class="config-panel" id="configPanel">
-    <h3>API Configuration</h3>
-    <div class="config-grid">
-      <div class="config-field">
-        <label>OpenAI API Key</label>
-        <input type="password" id="openaiKey" placeholder="">
-      </div>
-      <div class="config-field">
-        <label>Supabase URL</label>
-        <input type="text" id="supabaseUrl" placeholder="https://xxx.supabase.co">
-      </div>
-      <div class="config-field">
-        <label>Supabase Anon Key</label>
-        <input type="password" id="supabaseKey" placeholder="">
-      </div>
-    </div>
-    <button class="config-save" onclick="saveConfig()">Save Keys</button>
-  </div>
-
-  <!-- Search -->
   <div class="search-wrap">
     <input
       class="search-input"
@@ -484,32 +332,30 @@
       onkeydown="if(event.key==='Enter') search()"
     >
     <button class="search-btn" onclick="search()">
-      <svg viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" stroke="#0f0e0c" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#0f0e0c" stroke-width="2.5" stroke-linecap="round">
+        <circle cx="11" cy="11" r="6"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
     </button>
   </div>
 
-  <div class="search-meta">
-    <span class="search-hint">try natural questions — "who has trouble with staff retention?"</span>
-    <button class="config-toggle" onclick="toggleConfig()">configure keys</button>
+  <div class="search-hint">
+    try natural questions — "who has trouble with staff retention?"
   </div>
 
-  <!-- Loading -->
   <div class="status" id="status">
     <div class="spinner"></div>
     Searching transcripts...
   </div>
 
-  <!-- Results header -->
   <div class="results-header" id="resultsHeader">
     <span class="results-label">Matches</span>
     <span class="results-query" id="resultsQuery"></span>
     <span class="results-count" id="resultsCount"></span>
   </div>
 
-  <!-- Cards -->
   <div class="cards" id="cards"></div>
 
-  <!-- Empty -->
   <div class="empty" id="empty">
     <div class="empty-icon">◎</div>
     <h3>No matches found</h3>
@@ -519,93 +365,39 @@
 </div>
 
 <script>
-// --- CONFIG ---
-const SUPABASE_FUNCTION_URL = ''; // Leave blank - we call APIs directly
+const WORKER_URL = 'https://fc-matcher-proxy.samuel-robertson.workers.dev';
 
-function loadConfig() {
-  return {
-    openaiKey: localStorage.getItem('fc_openai_key') || '',
-    supabaseUrl: localStorage.getItem('fc_supabase_url') || '',
-    supabaseKey: localStorage.getItem('fc_supabase_key') || '',
-  };
-}
-
-function saveConfig() {
-  const openaiKey = document.getElementById('openaiKey').value.trim();
-  const supabaseUrl = document.getElementById('supabaseUrl').value.trim();
-  const supabaseKey = document.getElementById('supabaseKey').value.trim();
-  localStorage.setItem('fc_openai_key', openaiKey);
-  localStorage.setItem('fc_supabase_url', supabaseUrl);
-  localStorage.setItem('fc_supabase_key', supabaseKey);
-  document.getElementById('configPanel').classList.remove('visible');
-  document.getElementById('notConfigured').classList.remove('visible');
-  alert('Keys saved.');
-}
-
-function toggleConfig() {
-  const panel = document.getElementById('configPanel');
-  const cfg = loadConfig();
-  document.getElementById('openaiKey').value = cfg.openaiKey;
-  document.getElementById('supabaseUrl').value = cfg.supabaseUrl;
-  document.getElementById('supabaseKey').value = cfg.supabaseKey;
-  panel.classList.toggle('visible');
-}
-
-function checkConfig() {
-  const cfg = loadConfig();
-  if (!cfg.openaiKey || !cfg.supabaseUrl || !cfg.supabaseKey) {
-    document.getElementById('notConfigured').classList.add('visible');
-    return false;
-  }
-  return true;
-}
-
-// --- EMBEDDING ---
 async function getEmbedding(text) {
-  const cfg = loadConfig();
-  const res = await fetch('https://api.openai.com/v1/embeddings', {
+  const res = await fetch(`${WORKER_URL}/embed`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${cfg.openaiKey}`
-    },
-    body: JSON.stringify({ input: text, model: 'text-embedding-3-small' })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ input: text })
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error?.message || 'OpenAI error');
+  if (!res.ok) throw new Error(data.error?.message || 'Embedding failed');
   return data.data[0].embedding;
 }
 
-// --- SEARCH ---
 async function searchTranscripts(embedding) {
-  const cfg = loadConfig();
-  const res = await fetch(`${cfg.supabaseUrl}/rest/v1/rpc/match_transcripts`, {
+  const res = await fetch(`${WORKER_URL}/search`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': cfg.supabaseKey,
-      'Authorization': `Bearer ${cfg.supabaseKey}`
-    },
-    body: JSON.stringify({ query_embedding: embedding, match_count: 20 })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query_embedding: embedding })
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.message || 'Supabase error');
+  if (!res.ok) throw new Error(data.message || 'Search failed');
   return data;
 }
 
-// --- DEDUPLICATE by client ---
 function deduplicateByClient(chunks) {
   const seen = new Map();
   for (const chunk of chunks) {
-    const client = chunk.client || chunk.filename;
-    if (!seen.has(client)) {
-      seen.set(client, chunk);
-    }
+    const key = chunk.client || chunk.filename;
+    if (!seen.has(key)) seen.set(key, chunk);
   }
   return Array.from(seen.values()).slice(0, 8);
 }
 
-// --- EXTRACT QUOTE ---
 function extractQuote(content, maxLen = 200) {
   const clean = content.replace(/\s+/g, ' ').trim();
   if (clean.length <= maxLen) return clean;
@@ -613,7 +405,6 @@ function extractQuote(content, maxLen = 200) {
   return clean.slice(0, cut > 0 ? cut : maxLen) + '…';
 }
 
-// --- PARSE CLIENT from filename fallback ---
 function parseClientFromFilename(filename) {
   let name = filename.replace(/\.docx$/i, '');
   name = name.replace(/^FC\s*[_&]\s*/i, '');
@@ -622,13 +413,10 @@ function parseClientFromFilename(filename) {
   return name || filename;
 }
 
-// --- RENDER ---
 function renderCards(results, query) {
   const cards = document.getElementById('cards');
   const header = document.getElementById('resultsHeader');
   const empty = document.getElementById('empty');
-  const resultsQuery = document.getElementById('resultsQuery');
-  const resultsCount = document.getElementById('resultsCount');
 
   cards.innerHTML = '';
 
@@ -640,8 +428,8 @@ function renderCards(results, query) {
 
   empty.classList.remove('visible');
   header.classList.add('visible');
-  resultsQuery.textContent = `for "${query}"`;
-  resultsCount.textContent = `${results.length} clients`;
+  document.getElementById('resultsQuery').textContent = `for "${query}"`;
+  document.getElementById('resultsCount').textContent = `${results.length} clients`;
 
   results.forEach((r, i) => {
     const clientName = r.client && r.client !== 'Unknown' && r.client !== 'Internal'
@@ -649,13 +437,14 @@ function renderCards(results, query) {
       : parseClientFromFilename(r.filename);
 
     const coach = r.coach && r.coach !== 'Unknown' ? r.coach : null;
-    const date = r.call_date ? new Date(r.call_date).toLocaleDateString('en-AU', { month: 'short', year: 'numeric' }) : null;
+    const date = r.call_date
+      ? new Date(r.call_date).toLocaleDateString('en-AU', { month: 'short', year: 'numeric' })
+      : null;
     const quote = extractQuote(r.content);
 
     const card = document.createElement('div');
     card.className = 'card';
     card.style.animationDelay = `${i * 60}ms`;
-
     card.innerHTML = `
       <div class="card-top">
         <div class="client-name">${clientName}</div>
@@ -667,18 +456,11 @@ function renderCards(results, query) {
       <div class="quote">${quote}</div>
       <div class="filename">${r.filename}</div>
     `;
-
     cards.appendChild(card);
   });
 }
 
-// --- MAIN SEARCH ---
 async function search() {
-  if (!checkConfig()) {
-    toggleConfig();
-    return;
-  }
-
   const query = document.getElementById('searchInput').value.trim();
   if (!query) return;
 
@@ -700,18 +482,11 @@ async function search() {
     renderCards(deduped, query);
   } catch (err) {
     status.classList.remove('visible');
-    document.getElementById('empty').classList.add('visible');
+    empty.classList.add('visible');
     document.querySelector('.empty h3').textContent = 'Something went wrong';
     document.querySelector('.empty p').textContent = err.message;
   }
 }
-
-// --- INIT ---
-window.onload = () => {
-  if (!checkConfig()) {
-    // Show config panel on first load
-  }
-};
 </script>
 </body>
 </html>
