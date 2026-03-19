@@ -518,11 +518,16 @@ async function searchTranscripts(embedding) {
     body: JSON.stringify({ query_embedding: embedding })
   });
   const wrapper = await res.json();
-  const raw = wrapper.raw ? JSON.parse(wrapper.raw) : wrapper;
-  if (!Array.isArray(raw)) {
-    throw new Error(JSON.stringify(raw));
+  let data = wrapper;
+  if (wrapper.raw) {
+    data = JSON.parse(wrapper.raw);
+  } else if (wrapper.data) {
+    data = wrapper.data;
   }
-  return raw;
+  if (!Array.isArray(data)) {
+    throw new Error(JSON.stringify(data));
+  }
+  return data;
 }
 
 function deduplicateByClient(chunks) {
