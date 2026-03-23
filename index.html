@@ -566,11 +566,17 @@ async function getEmbedding(text) {
   return data.data[0].embedding;
 }
 
-async function searchTranscripts(embedding) {
+async function searchTranscripts(embedding, query) {
+  const { data: { session } } = await sb.auth.getSession();
+  const userEmail = session?.user?.email || 'unknown';
   const res = await fetch(`${WORKER_URL}/search`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query_embedding: embedding })
+    body: JSON.stringify({ 
+      query_embedding: embedding,
+      query: query,
+      user_email: userEmail
+    })
   });
   const data = await res.json();
   if (!Array.isArray(data)) throw new Error(JSON.stringify(data));
@@ -662,7 +668,7 @@ async function search() {
 
   try {
     const embedding = await getEmbedding(query);
-    const raw = await searchTranscripts(embedding);
+    const raw = await searchTranscripts(embedding, query);
     const deduped = deduplicateByClient(raw);
     status.classList.remove('visible');
     renderCards(deduped, query);
