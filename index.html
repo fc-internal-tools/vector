@@ -597,7 +597,7 @@ async function signInWithGoogle() {
   document.getElementById('authError').classList.remove('visible');
   const { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: 'https://samuelrobertson-dot.github.io/vector/' }
+    options: { redirectTo: 'https://fc-internal-tools.github.io/vector/' }
   });
   if (error) {
     document.getElementById('authLoading').classList.remove('visible');
