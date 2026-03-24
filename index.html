@@ -173,7 +173,6 @@
     height: calc(100vh - 49px);
   }
 
-  /* Left panel */
   .panel-left {
     width: 320px;
     flex-shrink: 0;
@@ -211,7 +210,6 @@
     display: block;
   }
 
-  /* Suggestions */
   .suggestions { margin-bottom: 24px; }
 
   .pill {
@@ -232,7 +230,6 @@
   }
   .pill:hover { border-color: var(--accent); color: var(--accent); }
 
-  /* Search input */
   .search-wrap { position: relative; margin-bottom: 0; }
 
   .search-input {
@@ -281,6 +278,19 @@
     margin-top: 8px;
   }
 
+  .error-state {
+    display: none;
+    background: rgba(192,57,43,0.06);
+    border: 1px solid rgba(192,57,43,0.2);
+    border-radius: 3px;
+    padding: 12px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: #c0392b;
+    margin-top: 8px;
+  }
+  .error-state.visible { display: block; }
+
   /* Right panel */
   .panel-right {
     flex: 1;
@@ -290,7 +300,6 @@
     flex-direction: column;
   }
 
-  /* Empty state */
   .empty-state {
     flex: 1;
     display: flex;
@@ -301,23 +310,19 @@
     text-align: center;
     gap: 12px;
   }
-
   .empty-icon { font-size: 40px; opacity: 0.3; }
-
   .empty-title {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 24px;
     letter-spacing: 0.04em;
     color: var(--text-dim);
   }
-
   .empty-hint {
     font-family: 'DM Mono', monospace;
     font-size: 11px;
     color: var(--text-dim);
   }
 
-  /* Loading */
   .loading-state {
     flex: 1;
     display: none;
@@ -345,7 +350,6 @@
     letter-spacing: 0.1em;
   }
 
-  /* Results */
   .results-state { display: none; flex-direction: column; }
   .results-state.visible { display: flex; }
 
@@ -375,21 +379,21 @@
     margin-left: auto;
   }
 
-  .cards { display: flex; flex-direction: column; gap: 2px; }
+  /* Client groups */
+  .client-groups { display: flex; flex-direction: column; gap: 16px; }
 
-  .card {
+  .client-group {
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: 4px;
-    padding: 20px 24px;
+    overflow: hidden;
     opacity: 0;
     transform: translateY(8px);
     animation: cardIn 0.3s forwards;
     position: relative;
-    overflow: hidden;
   }
 
-  .card::before {
+  .client-group::before {
     content: '';
     position: absolute;
     left: 0; top: 0; bottom: 0;
@@ -400,11 +404,12 @@
 
   @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
 
-  .card-top {
+  .client-group-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
-    margin-bottom: 10px;
     gap: 12px;
   }
 
@@ -416,12 +421,11 @@
     line-height: 1;
   }
 
-  .card-badges {
+  .client-header-right {
     display: flex;
-    gap: 6px;
+    align-items: center;
+    gap: 8px;
     flex-shrink: 0;
-    flex-wrap: wrap;
-    justify-content: flex-end;
   }
 
   .badge {
@@ -439,54 +443,46 @@
     border: 1px solid rgba(232, 197, 71, 0.2);
   }
 
-  .badge-date {
+  .badge-count {
     background: var(--surface);
-    color: var(--text-muted);
+    color: var(--text-dim);
     border: 1px solid var(--border);
   }
 
-  .quote {
+  .client-excerpts { padding: 0; }
+
+  .excerpt {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .excerpt:last-child { border-bottom: none; }
+
+  .excerpt-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  .excerpt-quote {
     font-size: 13px;
-    line-height: 1.7;
+    line-height: 1.65;
     color: var(--text-muted);
     position: relative;
     padding-left: 14px;
   }
 
-  .quote::before {
+  .excerpt-quote::before {
     content: '"';
     position: absolute;
     left: 0; top: -2px;
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 24px;
+    font-size: 22px;
     color: var(--accent);
     line-height: 1;
-    opacity: 0.5;
+    opacity: 0.4;
   }
-
-  .filename {
-    margin-top: 8px;
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    color: var(--text-dim);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  /* Error */
-  .error-state {
-    display: none;
-    background: rgba(192,57,43,0.06);
-    border: 1px solid rgba(192,57,43,0.2);
-    border-radius: 3px;
-    padding: 12px 16px;
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: #c0392b;
-    margin-top: 8px;
-  }
-  .error-state.visible { display: block; }
 </style>
 </head>
 <body>
@@ -524,9 +520,8 @@
 
   <div class="workspace">
 
-    <!-- Left: Search panel -->
+    <!-- Left -->
     <div class="panel-left">
-
       <div class="panel-title">Find<br><span>Clients</span></div>
       <p class="panel-desc">Search across all coaching transcripts to find clients who share a common challenge, tool, or topic.</p>
 
@@ -558,10 +553,9 @@
       </div>
       <div class="search-hint">Press Enter or click the button to search</div>
       <div class="error-state" id="errorMsg"></div>
-
     </div>
 
-    <!-- Right: Results panel -->
+    <!-- Right -->
     <div class="panel-right">
 
       <div class="empty-state" id="emptyState">
@@ -581,7 +575,7 @@
           <span class="results-query-text" id="resultsQuery"></span>
           <span class="results-count" id="resultsCount"></span>
         </div>
-        <div class="cards" id="cards"></div>
+        <div class="client-groups" id="clientGroups"></div>
       </div>
 
     </div>
@@ -653,7 +647,7 @@ window.addEventListener('load', async () => {
   });
 });
 
-// --- UI HELPERS ---
+// --- UI ---
 function setQuery(el) {
   document.getElementById('searchInput').value = el.textContent.trim();
   search();
@@ -665,7 +659,7 @@ function showPanel(name) {
   document.getElementById('resultsState').classList.toggle('visible', name === 'results');
 }
 
-// --- SEARCH ---
+// --- API ---
 async function getEmbedding(text, retries = 3) {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
@@ -693,6 +687,7 @@ async function searchTranscripts(embedding, query) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       query_embedding: embedding,
+      match_count: 80,
       query: query,
       user_email: userEmail
     })
@@ -702,16 +697,39 @@ async function searchTranscripts(embedding, query) {
   return data;
 }
 
-function deduplicateByClient(chunks) {
-  const seen = new Map();
+// --- GROUPING ---
+function groupByClient(chunks) {
+  const groups = new Map();
+
   for (const chunk of chunks) {
-    const key = chunk.client || chunk.filename;
-    if (!seen.has(key)) seen.set(key, chunk);
+    const key = (chunk.client && chunk.client !== 'Unknown' && chunk.client !== 'Internal')
+      ? chunk.client
+      : parseClientFromFilename(chunk.filename);
+
+    if (!groups.has(key)) {
+      groups.set(key, {
+        name: key,
+        coach: chunk.coach && chunk.coach !== 'Unknown' ? chunk.coach : null,
+        excerpts: []
+      });
+    }
+
+    const group = groups.get(key);
+    if (group.excerpts.length < 3) {
+      group.excerpts.push({
+        content: extractQuote(chunk.content),
+        date: chunk.call_date
+          ? new Date(chunk.call_date).toLocaleDateString('en-AU', { month: 'short', year: 'numeric' })
+          : null,
+        filename: chunk.filename
+      });
+    }
   }
-  return Array.from(seen.values()).slice(0, 8);
+
+  return Array.from(groups.values()).slice(0, 10);
 }
 
-function extractQuote(content, maxLen = 200) {
+function extractQuote(content, maxLen = 220) {
   const clean = content.replace(/\s+/g, ' ').trim();
   if (clean.length <= maxLen) return clean;
   const cut = clean.lastIndexOf(' ', maxLen);
@@ -726,45 +744,47 @@ function parseClientFromFilename(filename) {
   return name || filename;
 }
 
-function renderCards(results, query) {
-  const cards = document.getElementById('cards');
-  cards.innerHTML = '';
+// --- RENDER ---
+function renderGroups(groups, query) {
+  const container = document.getElementById('clientGroups');
+  container.innerHTML = '';
 
   document.getElementById('resultsQuery').textContent = `for "${query}"`;
-  document.getElementById('resultsCount').textContent = `${results.length} clients`;
+  document.getElementById('resultsCount').textContent = `${groups.length} clients`;
 
-  if (!results.length) {
-    cards.innerHTML = `<div style="padding:40px 0;text-align:center;font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim)">No matches found — try broader wording</div>`;
+  if (!groups.length) {
+    container.innerHTML = `<div style="padding:40px 0;text-align:center;font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim)">No matches found — try broader wording</div>`;
     return;
   }
 
-  results.forEach((r, i) => {
-    const clientName = r.client && r.client !== 'Unknown' && r.client !== 'Internal'
-      ? r.client : parseClientFromFilename(r.filename);
-    const coach = r.coach && r.coach !== 'Unknown' ? r.coach : null;
-    const date = r.call_date
-      ? new Date(r.call_date).toLocaleDateString('en-AU', { month: 'short', year: 'numeric' })
-      : null;
-    const quote = extractQuote(r.content);
+  groups.forEach((group, i) => {
+    const el = document.createElement('div');
+    el.className = 'client-group';
+    el.style.animationDelay = `${i * 60}ms`;
 
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.style.animationDelay = `${i * 60}ms`;
-    card.innerHTML = `
-      <div class="card-top">
-        <div class="client-name">${clientName}</div>
-        <div class="card-badges">
-          ${coach ? `<span class="badge badge-coach">${coach}</span>` : ''}
-          ${date ? `<span class="badge badge-date">${date}</span>` : ''}
+    const excerptHTML = group.excerpts.map(e => `
+      <div class="excerpt">
+        ${e.date ? `<div class="excerpt-date">${e.date} — ${e.filename.replace('.docx','').replace(/^FC\s*[_&]\s*/i,'').replace(/\d{4}[_-]\d{2}[_-]\d{2}.*/,'').trim()}</div>` : ''}
+        <div class="excerpt-quote">${e.content}</div>
+      </div>
+    `).join('');
+
+    el.innerHTML = `
+      <div class="client-group-header">
+        <div class="client-name">${group.name}</div>
+        <div class="client-header-right">
+          ${group.coach ? `<span class="badge badge-coach">${group.coach}</span>` : ''}
+          <span class="badge badge-count">${group.excerpts.length} mention${group.excerpts.length > 1 ? 's' : ''}</span>
         </div>
       </div>
-      <div class="quote">${quote}</div>
-      <div class="filename">${r.filename}</div>
+      <div class="client-excerpts">${excerptHTML}</div>
     `;
-    cards.appendChild(card);
+
+    container.appendChild(el);
   });
 }
 
+// --- MAIN ---
 async function search() {
   const query = document.getElementById('searchInput').value.trim();
   if (!query) return;
@@ -775,9 +795,9 @@ async function search() {
 
   try {
     const embedding = await getEmbedding(query);
-    const raw = await searchTranscripts(embedding, query);
-    const deduped = deduplicateByClient(raw);
-    renderCards(deduped, query);
+    const chunks = await searchTranscripts(embedding, query);
+    const groups = groupByClient(chunks);
+    renderGroups(groups, query);
     showPanel('results');
   } catch (err) {
     showPanel('empty');
