@@ -227,7 +227,6 @@
   }
   .pill:hover { border-color: var(--accent); color: var(--accent); }
 
-  /* Date filter */
   .date-filter { margin-bottom: 24px; }
 
   .date-row {
@@ -591,7 +590,6 @@
         <div class="pill" onclick="setQuery(this)">Who has a food truck?</div>
       </div>
 
-      <!-- Date filter -->
       <div class="date-filter">
         <span class="section-label">Date range <button class="date-clear" onclick="clearDates()" id="dateClearBtn" style="display:none">— clear</button></span>
         <div class="date-row">
@@ -728,24 +726,21 @@ function setPreset(preset) {
   const today = new Date();
   let from;
   document.querySelectorAll('.date-preset').forEach(el => el.classList.remove('active'));
-  document.getElementById(`preset-${preset}`)?.classList.add('active');
-
+  document.getElementById('preset-' + preset).classList.add('active');
   if (preset === '3m') {
     from = new Date(today); from.setMonth(from.getMonth() - 3);
-    document.getElementById('dateFrom').value = from.toISOString().split('T')[0];
-    document.getElementById('dateTo').value = today.toISOString().split('T')[0];
   } else if (preset === '6m') {
     from = new Date(today); from.setMonth(from.getMonth() - 6);
-    document.getElementById('dateFrom').value = from.toISOString().split('T')[0];
-    document.getElementById('dateTo').value = today.toISOString().split('T')[0];
   } else if (preset === '12m') {
     from = new Date(today); from.setFullYear(from.getFullYear() - 1);
-    document.getElementById('dateFrom').value = from.toISOString().split('T')[0];
-    document.getElementById('dateTo').value = today.toISOString().split('T')[0];
   } else if (preset === '2025') {
     document.getElementById('dateFrom').value = '2025-01-01';
     document.getElementById('dateTo').value = '2025-12-31';
+    document.getElementById('dateClearBtn').style.display = 'inline';
+    return;
   }
+  document.getElementById('dateFrom').value = from.toISOString().split('T')[0];
+  document.getElementById('dateTo').value = today.toISOString().split('T')[0];
   document.getElementById('dateClearBtn').style.display = 'inline';
 }
 
@@ -786,14 +781,16 @@ function showPanel(name) {
 async function getEmbedding(text, retries = 3) {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const res = await fetch(`${WORKER_URL}/embed`, {
+      const res = await fetch(WORKER_URL + '/embed', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ input: text })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error?.message || 'Embedding failed');
-      if (!data.data?.[0]?.embedding) throw new Error('Empty embedding response');
+      if (!data.data || !data.data[0] || !data.data[0].embedding) {
+        throw new Error('Empty embedding response');
+      }
       return data.data[0].embedding;
     } catch (err) {
       if (attempt === retries) throw err;
@@ -806,21 +803,39 @@ async function searchTranscripts(embedding, query, dateFilter) {
   const { data: { session } } = await sb.auth.getSession();
   const userEmail = session?.user?.email || 'unknown';
   const useFiltered = dateFilter.from || dateFilter.to;
-  const endpoint = useFiltered ? '/search-filtered' : '/search';
 
-  const res = await fetch(`${WORKER_URL}${endpoint}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      query_embedding: embedding,
-      match_count: 80,
-      query: query,
-      user_email: userEmail,
-      ...(useFiltered && { date_from: dateFilter.from, date_to: dateFilter.to })
-    })
-  });
-  const data = await res.json();
-  if (!Array.isArray(data)) throw new Error(JSON.stringify(data));
+  let res, data;
+
+  if (useFiltered) {
+    // Filtered endpoint — separate call with date params only
+    res = await fetch(WORKER_URL + '/search-filtered', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query_embedding: embedding,
+        match_count: 40,
+        date_from: dateFilter.from || null,
+        date_to: dateFilter.to || null
+      })
+    });
+  } else {
+    // Standard endpoint with full match count and audit logging
+    res = await fetch(WORKER_URL + '/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query_embedding: embedding,
+        match_count: 80,
+        query: query,
+        user_email: userEmail
+      })
+    });
+  }
+
+  data = await res.json();
+  if (!Array.isArray(data)) {
+    throw new Error('Search failed: ' + (data?.message || data?.error || JSON.stringify(data).slice(0, 200)));
+  }
   return data;
 }
 
@@ -831,7 +846,6 @@ function groupByClient(chunks) {
     const key = (chunk.client && chunk.client !== 'Unknown' && chunk.client !== 'Internal')
       ? chunk.client
       : parseClientFromFilename(chunk.filename);
-
     if (!groups.has(key)) {
       groups.set(key, {
         name: key,
@@ -853,7 +867,8 @@ function groupByClient(chunks) {
   return Array.from(groups.values()).slice(0, 10);
 }
 
-function extractQuote(content, maxLen = 220) {
+function extractQuote(content, maxLen) {
+  maxLen = maxLen || 220;
   const clean = content.replace(/\s+/g, ' ').trim();
   if (clean.length <= maxLen) return clean;
   const cut = clean.lastIndexOf(' ', maxLen);
@@ -873,43 +888,35 @@ function renderGroups(groups, query, dateFilter) {
   const container = document.getElementById('clientGroups');
   container.innerHTML = '';
 
-  let countText = `${groups.length} clients`;
+  let countText = groups.length + ' clients';
   if (dateFilter.from || dateFilter.to) {
     const fromStr = dateFilter.from ? new Date(dateFilter.from).toLocaleDateString('en-AU', { month: 'short', year: 'numeric' }) : 'all time';
     const toStr = dateFilter.to ? new Date(dateFilter.to).toLocaleDateString('en-AU', { month: 'short', year: 'numeric' }) : 'now';
-    countText += ` · ${fromStr} → ${toStr}`;
+    countText += ' · ' + fromStr + ' → ' + toStr;
   }
 
-  document.getElementById('resultsQuery').textContent = `for "${query}"`;
+  document.getElementById('resultsQuery').textContent = 'for "' + query + '"';
   document.getElementById('resultsCount').textContent = countText;
 
   if (!groups.length) {
-    container.innerHTML = `<div style="padding:40px 0;text-align:center;font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim)">No matches found — try broader wording or a wider date range</div>`;
+    container.innerHTML = '<div style="padding:40px 0;text-align:center;font-family:\'DM Mono\',monospace;font-size:11px;color:var(--text-dim)">No matches found — try broader wording or a wider date range</div>';
     return;
   }
 
-  groups.forEach((group, i) => {
+  groups.forEach(function(group, i) {
     const el = document.createElement('div');
     el.className = 'client-group';
-    el.style.animationDelay = `${i * 60}ms`;
+    el.style.animationDelay = (i * 60) + 'ms';
 
-    const excerptHTML = group.excerpts.map(e => `
-      <div class="excerpt">
-        ${e.date ? `<div class="excerpt-date">${e.date} — ${e.filename.replace('.docx','').replace(/^FC\s*[_&]\s*/i,'').replace(/\d{4}[_-]\d{2}[_-]\d{2}.*/,'').trim()}</div>` : ''}
-        <div class="excerpt-quote">${e.content}</div>
-      </div>
-    `).join('');
+    const excerptHTML = group.excerpts.map(function(e) {
+      const dateStr = e.date ? '<div class="excerpt-date">' + e.date + ' — ' + e.filename.replace('.docx','').replace(/^FC\s*[_&]\s*/i,'').replace(/\d{4}[_-]\d{2}[_-]\d{2}.*/,'').trim() + '</div>' : '';
+      return '<div class="excerpt">' + dateStr + '<div class="excerpt-quote">' + e.content + '</div></div>';
+    }).join('');
 
-    el.innerHTML = `
-      <div class="client-group-header">
-        <div class="client-name">${group.name}</div>
-        <div class="client-header-right">
-          ${group.coach ? `<span class="badge badge-coach">${group.coach}</span>` : ''}
-          <span class="badge badge-count">${group.excerpts.length} mention${group.excerpts.length > 1 ? 's' : ''}</span>
-        </div>
-      </div>
-      <div class="client-excerpts">${excerptHTML}</div>
-    `;
+    const coachBadge = group.coach ? '<span class="badge badge-coach">' + group.coach + '</span>' : '';
+    const countBadge = '<span class="badge badge-count">' + group.excerpts.length + ' mention' + (group.excerpts.length > 1 ? 's' : '') + '</span>';
+
+    el.innerHTML = '<div class="client-group-header"><div class="client-name">' + group.name + '</div><div class="client-header-right">' + coachBadge + countBadge + '</div></div><div class="client-excerpts">' + excerptHTML + '</div>';
     container.appendChild(el);
   });
 }
