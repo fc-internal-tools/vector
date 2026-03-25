@@ -766,9 +766,11 @@ function getDateFilter() {
 }
 
 // --- UI ---
+let isSearching = false;
+
 function setQuery(el) {
   document.getElementById('searchInput').value = el.textContent.trim();
-  search();
+  setTimeout(search, 50);
 }
 
 function showPanel(name) {
@@ -923,8 +925,10 @@ function renderGroups(groups, query, dateFilter) {
 
 // --- MAIN ---
 async function search() {
+  if (isSearching) return;
   const query = document.getElementById('searchInput').value.trim();
   if (!query) return;
+  isSearching = true;
 
   const errorMsg = document.getElementById('errorMsg');
   const dateFilter = getDateFilter();
@@ -941,6 +945,8 @@ async function search() {
     showPanel('empty');
     errorMsg.textContent = err.message;
     errorMsg.classList.add('visible');
+  } finally {
+    isSearching = false;
   }
 }
 </script>
