@@ -39,6 +39,7 @@
     opacity: 0.4;
   }
 
+  /* ── AUTH ── */
   .auth-screen {
     position: fixed;
     inset: 0;
@@ -121,6 +122,7 @@
   }
   .auth-loading.visible { display: block; }
 
+  /* ── LAYOUT ── */
   .app { display: none; }
   .app.visible { display: flex; flex-direction: column; min-height: 100vh; position: relative; z-index: 1; }
 
@@ -164,6 +166,7 @@
   }
   .signout-btn:hover { color: var(--accent); }
 
+  /* ── TWO-COLUMN ── */
   .workspace {
     display: flex;
     flex: 1;
@@ -227,13 +230,6 @@
   }
   .pill:hover { border-color: var(--accent); color: var(--accent); }
 
-
-
-
-
-
-
-
   .search-wrap { position: relative; margin-bottom: 0; }
 
   .search-input {
@@ -295,6 +291,7 @@
   }
   .error-state.visible { display: block; }
 
+  /* Right panel */
   .panel-right {
     flex: 1;
     overflow-y: auto;
@@ -382,6 +379,7 @@
     margin-left: auto;
   }
 
+  /* Client groups */
   .client-groups { display: flex; flex-direction: column; gap: 16px; }
 
   .client-group {
@@ -451,9 +449,12 @@
     border: 1px solid var(--border);
   }
 
+  .client-excerpts { padding: 0; }
+
   .excerpt {
     padding: 12px 20px;
     border-bottom: 1px solid var(--border);
+    position: relative;
   }
   .excerpt:last-child { border-bottom: none; }
 
@@ -486,6 +487,7 @@
 </head>
 <body>
 
+<!-- Auth -->
 <div class="auth-screen" id="authScreen">
   <div class="auth-box">
     <span class="auth-tag">Foodie Coaches // Internal Tool</span>
@@ -505,6 +507,7 @@
   </div>
 </div>
 
+<!-- App -->
 <div class="app" id="app">
 
   <div class="topbar">
@@ -517,6 +520,7 @@
 
   <div class="workspace">
 
+    <!-- Left -->
     <div class="panel-left">
       <div class="panel-title">Find<br><span>Clients</span></div>
       <p class="panel-desc">Search across all coaching transcripts to find clients who share a common challenge, tool, or topic.</p>
@@ -529,8 +533,6 @@
         <div class="pill" onclick="setQuery(this)">Who has trouble with staff retention?</div>
         <div class="pill" onclick="setQuery(this)">Who is struggling with wages?</div>
         <div class="pill" onclick="setQuery(this)">Who has a food truck?</div>
-      </div>
-        </div>
       </div>
 
       <span class="section-label">Search</span>
@@ -553,6 +555,7 @@
       <div class="error-state" id="errorMsg"></div>
     </div>
 
+    <!-- Right -->
     <div class="panel-right">
 
       <div class="empty-state" id="emptyState">
@@ -644,12 +647,42 @@ window.addEventListener('load', async () => {
   });
 });
 
+// --- UI ---
+function setQuery(el) {
+  document.getElementById('searchInput').value = el.textContent.trim();
+  search();
+}
+
+function showPanel(name) {
+  document.getElementById('emptyState').style.display = name === 'empty' ? 'flex' : 'none';
+  document.getElementById('loadingState').classList.toggle('visible', name === 'loading');
+  document.getElementById('resultsState').classList.toggle('visible', name === 'results');
+}
+
+// --- API ---
+async function getEmbedding(text, retries = 3) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(`${WORKER_URL}/embed`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: text })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || 'Embedding failed');
+      if (!data.data?.[0]?.embedding) throw new Error('Empty embedding response');
+      return data.data[0].embedding;
+    } catch (err) {
+      if (attempt === retries) throw err;
+      await new Promise(r => setTimeout(r, 1000 * attempt));
+    }
+  }
+}
 
 async function searchTranscripts(embedding, query) {
   const { data: { session } } = await sb.auth.getSession();
   const userEmail = session?.user?.email || 'unknown';
-
-  const res = await fetch(WORKER_URL + '/search', {
+  const res = await fetch(`${WORKER_URL}/search`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -659,21 +692,20 @@ async function searchTranscripts(embedding, query) {
       user_email: userEmail
     })
   });
-
   const data = await res.json();
-  if (!Array.isArray(data)) {
-    throw new Error('Search failed: ' + (data?.message || data?.error || JSON.stringify(data).slice(0, 200)));
-  }
+  if (!Array.isArray(data)) throw new Error(JSON.stringify(data));
   return data;
 }
 
 // --- GROUPING ---
 function groupByClient(chunks) {
   const groups = new Map();
+
   for (const chunk of chunks) {
     const key = (chunk.client && chunk.client !== 'Unknown' && chunk.client !== 'Internal')
       ? chunk.client
       : parseClientFromFilename(chunk.filename);
+
     if (!groups.has(key)) {
       groups.set(key, {
         name: key,
@@ -681,6 +713,7 @@ function groupByClient(chunks) {
         excerpts: []
       });
     }
+
     const group = groups.get(key);
     if (group.excerpts.length < 3) {
       group.excerpts.push({
@@ -692,11 +725,11 @@ function groupByClient(chunks) {
       });
     }
   }
+
   return Array.from(groups.values()).slice(0, 10);
 }
 
-function extractQuote(content, maxLen) {
-  maxLen = maxLen || 220;
+function extractQuote(content, maxLen = 220) {
   const clean = content.replace(/\s+/g, ' ').trim();
   if (clean.length <= maxLen) return clean;
   const cut = clean.lastIndexOf(' ', maxLen);
@@ -716,40 +749,45 @@ function renderGroups(groups, query) {
   const container = document.getElementById('clientGroups');
   container.innerHTML = '';
 
-  const countText = groups.length + ' clients';
-
-  document.getElementById('resultsQuery').textContent = 'for "' + query + '"';
-  document.getElementById('resultsCount').textContent = countText;
+  document.getElementById('resultsQuery').textContent = `for "${query}"`;
+  document.getElementById('resultsCount').textContent = `${groups.length} clients`;
 
   if (!groups.length) {
-    container.innerHTML = '<div style="padding:40px 0;text-align:center;font-family:\'DM Mono\',monospace;font-size:11px;color:var(--text-dim)">No matches found — try broader wording or a wider date range</div>';
+    container.innerHTML = `<div style="padding:40px 0;text-align:center;font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim)">No matches found — try broader wording</div>`;
     return;
   }
 
-  groups.forEach(function(group, i) {
+  groups.forEach((group, i) => {
     const el = document.createElement('div');
     el.className = 'client-group';
-    el.style.animationDelay = (i * 60) + 'ms';
+    el.style.animationDelay = `${i * 60}ms`;
 
-    const excerptHTML = group.excerpts.map(function(e) {
-      const dateStr = e.date ? '<div class="excerpt-date">' + e.date + ' — ' + e.filename.replace('.docx','').replace(/^FC\s*[_&]\s*/i,'').replace(/\d{4}[_-]\d{2}[_-]\d{2}.*/,'').trim() + '</div>' : '';
-      return '<div class="excerpt">' + dateStr + '<div class="excerpt-quote">' + e.content + '</div></div>';
-    }).join('');
+    const excerptHTML = group.excerpts.map(e => `
+      <div class="excerpt">
+        ${e.date ? `<div class="excerpt-date">${e.date} — ${e.filename.replace('.docx','').replace(/^FC\s*[_&]\s*/i,'').replace(/\d{4}[_-]\d{2}[_-]\d{2}.*/,'').trim()}</div>` : ''}
+        <div class="excerpt-quote">${e.content}</div>
+      </div>
+    `).join('');
 
-    const coachBadge = group.coach ? '<span class="badge badge-coach">' + group.coach + '</span>' : '';
-    const countBadge = '<span class="badge badge-count">' + group.excerpts.length + ' mention' + (group.excerpts.length > 1 ? 's' : '') + '</span>';
+    el.innerHTML = `
+      <div class="client-group-header">
+        <div class="client-name">${group.name}</div>
+        <div class="client-header-right">
+          ${group.coach ? `<span class="badge badge-coach">${group.coach}</span>` : ''}
+          <span class="badge badge-count">${group.excerpts.length} mention${group.excerpts.length > 1 ? 's' : ''}</span>
+        </div>
+      </div>
+      <div class="client-excerpts">${excerptHTML}</div>
+    `;
 
-    el.innerHTML = '<div class="client-group-header"><div class="client-name">' + group.name + '</div><div class="client-header-right">' + coachBadge + countBadge + '</div></div><div class="client-excerpts">' + excerptHTML + '</div>';
     container.appendChild(el);
   });
 }
 
 // --- MAIN ---
 async function search() {
-  if (isSearching) return;
   const query = document.getElementById('searchInput').value.trim();
   if (!query) return;
-  isSearching = true;
 
   const errorMsg = document.getElementById('errorMsg');
   errorMsg.classList.remove('visible');
@@ -765,8 +803,6 @@ async function search() {
     showPanel('empty');
     errorMsg.textContent = err.message;
     errorMsg.classList.add('visible');
-  } finally {
-    isSearching = false;
   }
 }
 </script>
